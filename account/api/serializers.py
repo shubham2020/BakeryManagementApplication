@@ -56,6 +56,7 @@ class OrderHistorySerializer(serializers.ModelSerializer):
 
 class PreBillSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField('get_selling_price')
+    item = serializers.ReadOnlyField(source='item.name')
 
     class Meta:
         model = OrderedItems
@@ -69,7 +70,6 @@ class PreBillSerializer(serializers.ModelSerializer):
         return sum
 
     def get_selling_price(self, item):
-        print("Inside get selling price: ", item)
         item = item.item
         cp = self.get_cost_price(item)
         profit = item.profit
@@ -79,11 +79,10 @@ class PreBillSerializer(serializers.ModelSerializer):
 
 class BillSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source='user.username')
-    items_purchased = PreBillSerializer(many=True)
 
     class Meta:
         model = Orders
-        fields = ['name', 'date', 'items_purchased']
+        fields = ['name', 'date']
         depth = 1
 
 class UserSerializer(serializers.ModelSerializer):

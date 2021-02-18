@@ -2,7 +2,6 @@ from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
 from account.api.views import (
-    user_details, 
     registration, 
     get_product_list,
     place_order,
@@ -19,5 +18,4 @@ urlpatterns = [
     path('place-order/', place_order, name='place-order'),
     path('get-order-history/', get_order_history, name='get-order-history'),
     path('get-bill/<id>', get_bill, name='get-bill'),
-    path('user-details/', user_details, name='details'),
 ]

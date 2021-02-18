@@ -11,7 +11,12 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from account.models import Orders, OrderedItems
 from bakery.models import BakeryItems
 from bakery.api.serializers import UserProductListSerializer
-from account.api.serializers import OrdersSerializer, OrderHistorySerializer, BillSerializer
+from account.api.serializers import (
+    OrdersSerializer, 
+    OrderHistorySerializer, 
+    BillSerializer,
+    PreBillSerializer
+)
 
 @api_view(['PUT',])
 def registration(request):
@@ -96,28 +101,22 @@ def get_bill(request, id):
         try:
             user = request.user
             order = Orders.objects.filter(user=user).get(pk=id)
-            print(order)
-            serializer = BillSerializer(order)
+            preser = PreBillSerializer(order.ordereditems_set, many=True)
+            total = 0
+            for items in preser.data:
+                print(items)
+                total += items['price']
+            serializer = BillSerializer(order).data
+            serializer["purchased_items"] = preser.data
+            serializer["total_price"] = total
             print(serializer)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response(status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET',])
-def user_details(request):
-    
-    try:
-        user = User.objects.all()
-    except Exception as e:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        serializer = UserSerializer(user, many=True)
-
-        return Response(serializer.data)
 
 
 
