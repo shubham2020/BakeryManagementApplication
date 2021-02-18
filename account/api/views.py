@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
+from django.db.models import Count
 from django.contrib.auth.models import User
 from account.api.serializers import UserSerializer, RegistrationSerializer
 from rest_framework.authtoken.models import Token
@@ -116,6 +117,34 @@ def get_bill(request, id):
             return Response(status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', ])
+@permission_classes((IsAdminUser,))
+def hottest_selling_item(request):
+
+    if request.method == 'GET':
+        try:
+            count_list = OrderedItems.objects.values('item').order_by('item').annotate(count=Count('item'))
+            max = 0
+            for i, val in enumerate(count_list):
+                if val['count'] > max:
+                    max = val['count']
+
+            hottest_selling_items = []
+            for i, val in enumerate(count_list):
+                if val['count'] == max:
+                    hottest_selling_items.append(BakeryItems.objects.get(pk=val['item']))
+
+            print(hottest_selling_items)
+
+            serializer = UserProductListSerializer(hottest_selling_items, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
